@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:confluent-schema-registry="http://www.mulesoft.org/schema/mule/confluent-schema-registry"
+	xmlns:kafka="http://www.mulesoft.org/schema/mule/kafka"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/kafka http://www.mulesoft.org/schema/mule/kafka/current/mule-kafka.xsd
+http://www.mulesoft.org/schema/mule/confluent-schema-registry http://www.mulesoft.org/schema/mule/confluent-schema-registry/current/mule-confluent-schema-registry.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="37c29611-37e3-425f-8f70-992e8ae968c3" basePath="/api" >
+		<http:listener-connection host="0.0.0.0" port="8091" />
+	</http:listener-config>
+	<kafka:producer-config name="Apache_Kafka_Producer_configuration" doc:name="Apache Kafka Producer configuration" doc:id="9aae5462-ca8a-43e6-b32c-26a65c19e7af" >
+		<kafka:producer-sasl-plain-connection username="${api.key}" password="${api.secret}" >
+			<tls:context >
+				<tls:key-store type="jks" />
+			</tls:context>
+			<kafka:bootstrap-servers >
+				<kafka:bootstrap-server value="${bootstrap.server}" />
+			</kafka:bootstrap-servers>
+			<kafka:additional-properties >
+				<kafka:additional-property key="schema.registry.url" value="${schema.url}" />
+				<kafka:additional-property key="basic.auth.credentials.source" value="${basic.auth.credentials.source}" />
+				<kafka:additional-property key="schema.registry.basic.auth.user.info" value="${schema.user}:${schema.passwd}" />
+				<kafka:additional-property key="auto.register.schemas" value="false" />
+				<kafka:additional-property key="use.latest.version" value="true" />
+				<kafka:additional-property key="value.serializer" value="${value.serializer}" />
+				<kafka:additional-property key="rule.executors._default_.param.client.id" value="${client.id}" />
+				<kafka:additional-property key="rule.executors._default_.param.client.email" value="${client.email}" />
+				<kafka:additional-property key="rule.executors._default_.param.private.key.id" value="${private.key.id}" />
+				<kafka:additional-property key="rule.executors._default_.param.private.key" value="${private.key}" />
+			</kafka:additional-properties>
+		</kafka:producer-sasl-plain-connection>
+	</kafka:producer-config>
+	<kafka:consumer-config name="Apache_Kafka_Consumer_configuration" doc:name="Apache Kafka Consumer configuration" doc:id="16a52950-b804-4d48-b55d-1b79b797b52d" >
+		<kafka:consumer-sasl-plain-connection groupId="${consumer.group.1}" username="${api.key}" password="${api.secret}" isolationLevel="READ_COMMITTED" autoOffsetReset="EARLIEST" >
+			<tls:context >
+				<tls:key-store type="jks" />
+			</tls:context>
+			<kafka:bootstrap-servers >
+				<kafka:bootstrap-server value="${bootstrap.server}" />
+			</kafka:bootstrap-servers>
+			<kafka:additional-properties >
+				<kafka:additional-property key="schema.registry.url" value="${schema.url}" />
+				<kafka:additional-property key="basic.auth.credentials.source" value="${basic.auth.credentials.source}" />
+				<kafka:additional-property key="schema.registry.basic.auth.user.info" value="${schema.user}:${schema.passwd}" />
+				<kafka:additional-property key="auto.register.schemas" value="false" />
+				<kafka:additional-property key="use.latest.version" value="true" />
+				<kafka:additional-property key="value.deserializer" value="${value.deserializer}" />
+				<kafka:additional-property key="rule.executors._default_.param.client.id" value="${client.id}" />
+				<kafka:additional-property key="rule.executors._default_.param.client.email" value="${client.email}" />
+				<kafka:additional-property key="rule.executors._default_.param.private.key.id" value="${private.key.id}" />
+				<kafka:additional-property key="rule.executors._default_.param.private.key" value="${private.key}" />
+			</kafka:additional-properties>
+			<kafka:topic-patterns >
+				<kafka:topic-pattern value="${topic}" />
+			</kafka:topic-patterns>
+		</kafka:consumer-sasl-plain-connection>
+	</kafka:consumer-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="ef61f4d8-e01d-497c-bf51-dfc262516831" file="app.properties"/>	
+</mule>
