@@ -1,0 +1,26 @@
+{
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "first_name",
+      "type": "string",
+      "confluent:tags": ["PII"]
+    },
+    {
+      "name": "last_name",
+      "type": "string",
+      "confluent:tags": ["PII"]
+    },
+    {
+      "name": "email",
+      "type": "string",
+      "confluent:tags": ["PII"]
+    }
+  ],
+  "name": "CustomerCreated",
+  "namespace": "com.customer.events",
+  "type": "record"
+}

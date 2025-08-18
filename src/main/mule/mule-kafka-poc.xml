@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:java="http://www.mulesoft.org/schema/mule/java" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:confluent-schema-registry="http://www.mulesoft.org/schema/mule/confluent-schema-registry"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:kafka="http://www.mulesoft.org/schema/mule/kafka" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/kafka http://www.mulesoft.org/schema/mule/kafka/current/mule-kafka.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/confluent-schema-registry http://www.mulesoft.org/schema/mule/confluent-schema-registry/current/mule-confluent-schema-registry.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd">
+	<flow name="confluent-kafka-local-adapterFlow" doc:id="6d0a231e-3663-4ab5-8b84-173d944988d3" >
+		<http:listener doc:name="Listener" doc:id="65bd62e7-1476-47c0-9253-874c9c957b5e" config-ref="HTTP_Listener_config" path="/produce"/>
+		<logger level="INFO" doc:name="Logger - Start" doc:id="36261591-d3ff-4649-8432-a8cf424a9790" message='#[%dw 2.0
+output application/json
+---
+{
+	flow: flow.name,
+	message: "Received a Message - publish",
+	payload: payload
+}]'/>
+		<ee:transform doc:name="Transform Message" doc:id="301fe631-d922-4089-a5d4-def4ea5fd03c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/avro schemaUrl="classpath://schema/CustomerCreated.avsc"
+---
+{
+	id: payload.id,
+	first_name: payload.firstName,
+	last_name: payload.lastName,
+	email: payload.email
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="key" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.id]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="logger - Transform" message='#[%dw 2.0
+output application/json
+---
+{
+	flow: flow.name,
+	message: "TX Message - publish",
+	payload: payload
+}]' />
+		<kafka:publish doc:name="Publish" doc:id="3bef4c71-e7ee-4bd8-a59b-ed37c06413ce" config-ref="Apache_Kafka_Producer_configuration" topic="${topic}" key="#[vars.key]"/>
+		<logger level="INFO" doc:name="Logger - Publish" doc:id="a2f75ac3-03f8-4ac6-9de2-0d517d7a564b" message='#[%dw 2.0
+output application/json
+---
+{
+	flow: flow.name,
+	message: "Published a Message",
+	payload: payload
+}]'/>
+	</flow>
+	<flow name="confluent-kafka-local-adapterFlow1" doc:id="5a218047-8aed-481d-af50-eb595b0a14f4" >
+		<kafka:message-listener doc:name="Message listener" doc:id="71bc1570-baca-460c-aedf-f78b4d0ae692" config-ref="Apache_Kafka_Consumer_configuration"/>
+		<logger level="INFO" doc:name="Logger - Start" doc:id="ba0afc12-0c92-4567-bc67-f70d2fac0517" message="#[payload]" category="Received.Message.from.cosumer" />
+	</flow>
+</mule>
